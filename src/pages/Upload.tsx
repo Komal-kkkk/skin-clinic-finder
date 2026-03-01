@@ -278,6 +278,12 @@ const Upload = () => {
                       onChange={handleImageChange}
                     />
                   </div>
+                  {fileError && (
+                    <Alert variant="destructive" className="mt-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{fileError}</AlertDescription>
+                    </Alert>
+                  )}
                   <Button className="w-full mt-4 gap-2" disabled={!imageFile} onClick={proceedToQuestions}>
                     Continue to Diagnostic Questions <ChevronRight className="h-4 w-4" />
                   </Button>
