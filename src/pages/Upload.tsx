@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload as UploadIcon, ChevronRight, ChevronLeft, MapPin, Loader2, ImageIcon, RotateCcw, Navigation, AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
