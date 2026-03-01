@@ -273,7 +273,7 @@ const Upload = () => {
                     <input
                       id="file-input"
                       type="file"
-                      accept="image/*"
+                      accept=".png,.jpg,.jpeg"
                       className="hidden"
                       onChange={handleImageChange}
                     />
