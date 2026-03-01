@@ -75,7 +75,7 @@ const detectCity = (lat: number, lon: number): string | null => {
   return null;
 };
 
-type Step = "upload" | "questions" | "results";
+type Step = "upload" | "analyzing" | "questions" | "results";
 
 const Upload = () => {
   const [step, setStep] = useState<Step>("upload");
