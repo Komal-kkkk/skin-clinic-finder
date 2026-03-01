@@ -90,9 +90,23 @@ const Upload = () => {
   const [cityInput, setCityInput] = useState("");
   const [citySearchError, setCitySearchError] = useState<string | null>(null);
 
+  const ALLOWED_TYPES = ["image/png", "image/jpg", "image/jpeg"];
+  const ALLOWED_EXT = [".png", ".jpg", ".jpeg"];
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  const validateFile = (file: File): boolean => {
+    const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+    if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXT.includes(ext)) {
+      setFileError("Invalid file format. Only PNG and JPG images are allowed.");
+      return false;
+    }
+    setFileError(null);
+    return true;
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && validateFile(file)) {
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
@@ -103,7 +117,7 @@ const Upload = () => {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file && validateFile(file)) {
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
@@ -259,11 +273,17 @@ const Upload = () => {
                     <input
                       id="file-input"
                       type="file"
-                      accept="image/*"
+                      accept=".png,.jpg,.jpeg"
                       className="hidden"
                       onChange={handleImageChange}
                     />
                   </div>
+                  {fileError && (
+                    <Alert variant="destructive" className="mt-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{fileError}</AlertDescription>
+                    </Alert>
+                  )}
                   <Button className="w-full mt-4 gap-2" disabled={!imageFile} onClick={proceedToQuestions}>
                     Continue to Diagnostic Questions <ChevronRight className="h-4 w-4" />
                   </Button>
