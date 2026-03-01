@@ -129,8 +129,28 @@ const Upload = () => {
     }
   }, []);
 
-  const proceedToQuestions = () => {
-    if (imageFile) setStep("questions");
+  const proceedToQuestions = async () => {
+    if (!imageFile || !imagePreview) return;
+    setSkinAnalysisError(null);
+    setAnalyzing(true);
+    setStep("analyzing");
+
+    try {
+      const result = await analyzeSkinImage(imagePreview);
+      setSkinConfidence(result.confidence);
+
+      if (result.isSkinImage) {
+        setStep("questions");
+      } else {
+        setSkinAnalysisError(result.message);
+        setStep("upload");
+      }
+    } catch {
+      setSkinAnalysisError("Unable to process image. Please try another image.");
+      setStep("upload");
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   const handleAnswer = (qId: number, value: boolean) => {
