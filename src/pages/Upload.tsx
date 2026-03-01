@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload as UploadIcon, ChevronRight, ChevronLeft, MapPin, Loader2, ImageIcon, RotateCcw, Navigation, AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { diagnosticQuestions, diseases, calculateSeverity, type Disease } from "@/lib/diseases";
+import { analyzeSkinImage } from "@/lib/skinDetector";
 
 interface DermatologyClinic {
   name: string;
@@ -74,7 +75,7 @@ const detectCity = (lat: number, lon: number): string | null => {
   return null;
 };
 
-type Step = "upload" | "questions" | "results";
+type Step = "upload" | "analyzing" | "questions" | "results";
 
 const Upload = () => {
   const [step, setStep] = useState<Step>("upload");
@@ -89,6 +90,9 @@ const Upload = () => {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [cityInput, setCityInput] = useState("");
   const [citySearchError, setCitySearchError] = useState<string | null>(null);
+  const [skinAnalysisError, setSkinAnalysisError] = useState<string | null>(null);
+  const [skinConfidence, setSkinConfidence] = useState<number | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   const ALLOWED_TYPES = ["image/png", "image/jpg", "image/jpeg"];
   const ALLOWED_EXT = [".png", ".jpg", ".jpeg"];
@@ -125,8 +129,28 @@ const Upload = () => {
     }
   }, []);
 
-  const proceedToQuestions = () => {
-    if (imageFile) setStep("questions");
+  const proceedToQuestions = async () => {
+    if (!imageFile || !imagePreview) return;
+    setSkinAnalysisError(null);
+    setAnalyzing(true);
+    setStep("analyzing");
+
+    try {
+      const result = await analyzeSkinImage(imagePreview);
+      setSkinConfidence(result.confidence);
+
+      if (result.isSkinImage) {
+        setStep("questions");
+      } else {
+        setSkinAnalysisError(result.message);
+        setStep("upload");
+      }
+    } catch {
+      setSkinAnalysisError("Unable to process image. Please try another image.");
+      setStep("upload");
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   const handleAnswer = (qId: number, value: boolean) => {
@@ -221,6 +245,9 @@ const Upload = () => {
     setLocationError(null);
     setCityInput("");
     setCitySearchError(null);
+    setSkinAnalysisError(null);
+    setSkinConfidence(null);
+    setAnalyzing(false);
   };
 
   return (
@@ -228,19 +255,24 @@ const Upload = () => {
       <div className="container mx-auto px-4 max-w-2xl">
         {/* Progress */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {(["upload", "questions", "results"] as Step[]).map((s, i) => (
+          {(["upload", "analyzing", "questions", "results"] as Step[]).map((s, i) => {
+            // Map analyzing to same visual position as upload (step 1)
+            const visualIndex = s === "analyzing" ? 0 : s === "upload" ? 0 : s === "questions" ? 1 : 2;
+            if (s === "analyzing") return null; // Don't show separate dot for analyzing
+            return (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  step === s ? "bg-primary text-primary-foreground" :
-                  (["upload", "questions", "results"].indexOf(step) > i ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")
+                  step === s || (s === "upload" && step === "analyzing") ? "bg-primary text-primary-foreground" :
+                  (["upload", "analyzing", "questions", "results"].indexOf(step) > ["upload", "analyzing", "questions", "results"].indexOf(s) ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")
                 }`}
               >
-                {i + 1}
+                {visualIndex + 1}
               </div>
-              {i < 2 && <div className="w-8 h-px bg-border" />}
+              {visualIndex < 2 && <div className="w-8 h-px bg-border" />}
             </div>
-          ))}
+          );
+          })}
         </div>
 
         <AnimatePresence mode="wait">
@@ -284,9 +316,41 @@ const Upload = () => {
                       <AlertDescription>{fileError}</AlertDescription>
                     </Alert>
                   )}
-                  <Button className="w-full mt-4 gap-2" disabled={!imageFile} onClick={proceedToQuestions}>
-                    Continue to Diagnostic Questions <ChevronRight className="h-4 w-4" />
+                  {skinAnalysisError && (
+                    <Alert variant="destructive" className="mt-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{skinAnalysisError}</AlertDescription>
+                    </Alert>
+                  )}
+                  <Button className="w-full mt-4 gap-2" disabled={!imageFile || analyzing} onClick={proceedToQuestions}>
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing Image...
+                      </>
+                    ) : (
+                      <>
+                        Continue to Diagnostic Questions <ChevronRight className="h-4 w-4" />
+                      </>
+                    )}
                   </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* STEP: Analyzing overlay */}
+          {step === "analyzing" && (
+            <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <Card>
+                <CardContent className="py-16">
+                  <div className="text-center space-y-4">
+                    <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                    <h3 className="text-lg font-semibold">Analyzing Your Image</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Checking if the uploaded image contains detectable skin regions...
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -375,6 +439,11 @@ const Upload = () => {
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground mb-1">Possible Condition</p>
                     <h2 className="text-2xl font-bold text-primary">{detectedDisease.name}</h2>
+                    {skinConfidence !== null && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Skin detection confidence: {skinConfidence}%
+                      </p>
+                    )}
                     <span className="inline-block mt-1 text-xs uppercase font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                       {detectedDisease.category}
                     </span>
