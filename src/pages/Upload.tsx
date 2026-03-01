@@ -90,6 +90,9 @@ const Upload = () => {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [cityInput, setCityInput] = useState("");
   const [citySearchError, setCitySearchError] = useState<string | null>(null);
+  const [skinAnalysisError, setSkinAnalysisError] = useState<string | null>(null);
+  const [skinConfidence, setSkinConfidence] = useState<number | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   const ALLOWED_TYPES = ["image/png", "image/jpg", "image/jpeg"];
   const ALLOWED_EXT = [".png", ".jpg", ".jpeg"];
