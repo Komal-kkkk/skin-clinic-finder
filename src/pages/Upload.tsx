@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { diagnosticQuestions, diseases, calculateSeverity, type Disease } from "@/lib/diseases";
+import { analyzeSkinImage } from "@/lib/skinDetector";
 
 interface DermatologyClinic {
   name: string;
