@@ -439,6 +439,11 @@ const Upload = () => {
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground mb-1">Possible Condition</p>
                     <h2 className="text-2xl font-bold text-primary">{detectedDisease.name}</h2>
+                    {skinConfidence !== null && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Skin detection confidence: {skinConfidence}%
+                      </p>
+                    )}
                     <span className="inline-block mt-1 text-xs uppercase font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                       {detectedDisease.category}
                     </span>
