@@ -245,6 +245,9 @@ const Upload = () => {
     setLocationError(null);
     setCityInput("");
     setCitySearchError(null);
+    setSkinAnalysisError(null);
+    setSkinConfidence(null);
+    setAnalyzing(false);
   };
 
   return (
