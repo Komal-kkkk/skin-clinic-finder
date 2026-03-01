@@ -263,15 +263,16 @@ const Upload = () => {
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  step === s ? "bg-primary text-primary-foreground" :
-                  (["upload", "questions", "results"].indexOf(step) > i ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")
+                  step === s || (s === "upload" && step === "analyzing") ? "bg-primary text-primary-foreground" :
+                  (["upload", "analyzing", "questions", "results"].indexOf(step) > ["upload", "analyzing", "questions", "results"].indexOf(s) ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")
                 }`}
               >
-                {i + 1}
+                {visualIndex + 1}
               </div>
-              {i < 2 && <div className="w-8 h-px bg-border" />}
+              {visualIndex < 2 && <div className="w-8 h-px bg-border" />}
             </div>
-          ))}
+          );
+          })}
         </div>
 
         <AnimatePresence mode="wait">
