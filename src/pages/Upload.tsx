@@ -316,9 +316,41 @@ const Upload = () => {
                       <AlertDescription>{fileError}</AlertDescription>
                     </Alert>
                   )}
-                  <Button className="w-full mt-4 gap-2" disabled={!imageFile} onClick={proceedToQuestions}>
-                    Continue to Diagnostic Questions <ChevronRight className="h-4 w-4" />
+                  {skinAnalysisError && (
+                    <Alert variant="destructive" className="mt-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{skinAnalysisError}</AlertDescription>
+                    </Alert>
+                  )}
+                  <Button className="w-full mt-4 gap-2" disabled={!imageFile || analyzing} onClick={proceedToQuestions}>
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing Image...
+                      </>
+                    ) : (
+                      <>
+                        Continue to Diagnostic Questions <ChevronRight className="h-4 w-4" />
+                      </>
+                    )}
                   </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* STEP: Analyzing overlay */}
+          {step === "analyzing" && (
+            <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <Card>
+                <CardContent className="py-16">
+                  <div className="text-center space-y-4">
+                    <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                    <h3 className="text-lg font-semibold">Analyzing Your Image</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Checking if the uploaded image contains detectable skin regions...
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
