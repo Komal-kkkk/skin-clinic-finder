@@ -255,7 +255,11 @@ const Upload = () => {
       <div className="container mx-auto px-4 max-w-2xl">
         {/* Progress */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {(["upload", "questions", "results"] as Step[]).map((s, i) => (
+          {(["upload", "analyzing", "questions", "results"] as Step[]).map((s, i) => {
+            // Map analyzing to same visual position as upload (step 1)
+            const visualIndex = s === "analyzing" ? 0 : s === "upload" ? 0 : s === "questions" ? 1 : 2;
+            if (s === "analyzing") return null; // Don't show separate dot for analyzing
+            return (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
